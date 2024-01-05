@@ -1,0 +1,16 @@
+<Project>
+
+    <!-- Define defaults for project properties. -->
+    <PropertyGroup>
+        <ImportModLoader Condition=" '$(ImportModLoader)' == '' ">enable</ImportModLoader>
+        <CodeAssist Condition=" '$(CodeAssist)' == '' ">enable</CodeAssist>
+        <PreferDotNetNameToDotNetPath Condition=" '$(PreferDotNetNameToDotNetPath)' == '' ">false</PreferDotNetNameToDotNetPath>
+        <OverrideTMLBuildTask Condition=" '$(OverrideTMLBuildTask)' == '' ">false</OverrideTMLBuildTask>
+
+        <PathToModLoaderTargetsDir Condition=" $(PathToModLoaderTargetsDir) == '' ">$(MSBuildProjectDirectory)/../../../</PathToModLoaderTargetsDir>
+    </PropertyGroup>
+
+    <!-- Import general Catalst build targets. -->
+    <Import Project="build/TeamCatalyst.Catalyst.targets"/>
+
+</Project>

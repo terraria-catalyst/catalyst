@@ -1,0 +1,23 @@
+<Project>
+
+    <!-- Set the correct dotnet path to use based on platform. On Windows, it's
+         dotnet.exe. On Linux, it's dotnet. Depends on what's on the PATH.
+         Normally, Windows applications would be fine with omitting the
+         extension, but IDEs such as Rider are special. -->
+    <PropertyGroup>
+        <!-- If there ever arises a situation in which we would have to split up
+             Unix logic into Linux and macOS logic, we should instead use
+             $([MSBuild]::IsOSPlatform('OSX')). -->
+        <DotNetPath Condition=" '$(DotNetPath)' == '' AND '$(OS)' == 'Windows_NT' ">dotnet.exe</DotNetPath>
+        <DotNetPath Condition=" '$(DotNetPath)' == '' AND '$(OS)' == 'Unix' ">dotnet</DotNetPath>
+
+        <!-- Fallback value if we can't detect the platform. -->
+        <DotNetPath Condition=" '$(DotNetPath)' == '' ">dotnet</DotNetPath>
+        
+        <!-- Use the DotNetName property introduced in TML-3944, which as of
+             writing is determined by the logic above because someone else PR'd
+             this into tML specifically. -->
+        <DotNetPath Condition=" '$(PreferDotNetNameToDotNetPath)' == 'true' AND '$(DotNetName)' != '' ">$(DotNetName)</DotNetPath>
+    </PropertyGroup>
+
+</Project>

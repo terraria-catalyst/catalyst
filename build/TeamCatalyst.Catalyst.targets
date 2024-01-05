@@ -1,0 +1,11 @@
+<Project>
+
+    <Import Project="TeamCatalyst.Catalyst.DotNetPath.targets"/>
+    <Import Project="TeamCatalyst.Catalyst.ModLoader.targets"/>
+    <Import Project="TeamCatalyst.Catalyst.ErrorChecker.targets"/>
+
+    <ItemGroup>
+        <PackageReference Include="JetBrains.Annotations" Version="2023.3.0"/>
+    </ItemGroup>
+
+</Project>
