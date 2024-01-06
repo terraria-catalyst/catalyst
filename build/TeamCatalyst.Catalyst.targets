@@ -2,10 +2,15 @@
 
     <Import Project="TeamCatalyst.Catalyst.DotNetPath.targets"/>
     <Import Project="TeamCatalyst.Catalyst.ModLoader.targets"/>
+    <Import Project="TeamCatalyst.Catalyst.ModifyReferences.targets"/>
     <Import Project="TeamCatalyst.Catalyst.ErrorChecker.targets"/>
 
     <ItemGroup>
         <PackageReference Include="JetBrains.Annotations" Version="2023.3.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="$(MSBuildThisFileDirectory)/../src/TeamCatalyst.Catalyst.Build/TeamCatalyst.Catalyst.Build.csproj" Private="true" PrivateAssets="all" ReferenceOutputAssembly="false" OutputItemType="Analyzer"/>
     </ItemGroup>
 
 </Project>

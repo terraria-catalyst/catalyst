@@ -7,6 +7,11 @@
         <PreferDotNetNameToDotNetPath Condition=" '$(PreferDotNetNameToDotNetPath)' == '' ">false</PreferDotNetNameToDotNetPath>
         <OverrideTMLBuildTask Condition=" '$(OverrideTMLBuildTask)' == '' ">false</OverrideTMLBuildTask>
 
+        <!--suppress CheckTagEmptyBody -->
+        <AssemblyPublicizerPaths Condition=" '$(AssemblyPublicizerPaths)' == '' "></AssemblyPublicizerPaths>
+
+        <CatalystDir Condition=" '$(CatalystDir)' == '' ">$(MSBuildProjectDirectory)/.catalyst/</CatalystDir>
+
         <PathToModLoaderTargetsDir Condition=" $(PathToModLoaderTargetsDir) == '' ">$(MSBuildProjectDirectory)/../../../</PathToModLoaderTargetsDir>
     </PropertyGroup>
 

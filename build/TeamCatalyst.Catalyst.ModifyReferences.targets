@@ -1,0 +1,29 @@
+<Project>
+
+    <UsingTask TaskName="ModifyReferencesTask" AssemblyFile="../src/TeamCatalyst.Catalyst.Build/bin/TeamCatalyst.Catalyst.Build.dll"/>
+
+    <Target Name="ModifyReferences" DependsOnTargets="ResolveAssemblyReferences" BeforeTargets="ResolveReferences">
+        <ModifyReferencesTask ReferencePaths="@(ReferencePath)" Publicizers="$(AssemblyPublicizerPaths)" OutputDirectory="$(CatalystDir)assemblies">
+            <Output TaskParameter="ReferencesToAdd" ItemName="_ReferencesToAdd"/>
+            <Output TaskParameter="ReferencesToRemove" ItemName="_ReferencesToRemove"/>
+        </ModifyReferencesTask>
+
+        <ItemGroup>
+            <ReferencePath Remove="@(_ReferencesToRemove)"/>
+            <ReferencePath Include="@(_ReferencesToAdd)"/>
+        </ItemGroup>
+
+        <!-- Handle flags for allowing accessing at runtime. -->
+
+        <ItemGroup>
+            <AssemblyAttribute Include="System.Runtime.CompilerServices.IgnoresAccessChecksToAttribute">
+                <_Parameter1>%(_ReferencesToAdd.Filename)</_Parameter1>
+            </AssemblyAttribute>
+        </ItemGroup>
+
+        <PropertyGroup>
+            <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        </PropertyGroup>
+    </Target>
+
+</Project>
