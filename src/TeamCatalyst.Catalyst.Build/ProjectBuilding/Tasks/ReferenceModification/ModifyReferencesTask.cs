@@ -32,6 +32,49 @@ public sealed class ModifyReferencesTask : AbstractTask {
         ReferencesToAdd ??= Array.Empty<ITaskItem>();
         ReferencesToRemove ??= Array.Empty<ITaskItem>();
 
+        var publicManifest = HandlePublicizers();
+
+        var toAdd = new List<ITaskItem>();
+        var toRemove = new List<ITaskItem>();
+
+        foreach (var reference in ReferencePaths) {
+            var asmName = reference.GetMetadata("Filename");
+            var assemblyPath = reference.GetMetadata("FullPath");
+
+            var asmBytes = File.ReadAllBytes(assemblyPath);
+            var hash = Hasher.ComputeHash(asmBytes, new ReferenceModificationHasher(publicManifest));
+            var outputDir = Path.Combine(OutputDirectory, $"{asmName}-{hash}");
+            var outputPath = Path.Combine(outputDir, $"{asmName}.dll");
+            Directory.CreateDirectory(outputDir);
+
+            if (File.Exists(outputPath)) {
+                Log.LogMessage("Skipping reference '{0}' because it already exists in the output directory", asmName);
+                continue;
+            }
+
+            var asmDef = AssemblyDefinition.FromBytes(asmBytes);
+            if (!RewriteAssembly(asmDef, new PublicizerAssemblyRewriter(publicManifest)))
+                continue;
+
+            Log.LogMessage("Writing modified reference '{0}' to '{1}'", asmName, outputPath);
+            asmDef.Write(outputPath);
+
+            var documentationPath = Path.Combine(Path.GetDirectoryName(assemblyPath)!, asmName + ".xml");
+            if (File.Exists(documentationPath))
+                File.Copy(documentationPath, Path.Combine(outputDir, asmName + ".xml"), true);
+
+            var newRef = new TaskItem(outputPath);
+            reference.CopyMetadataTo(newRef);
+            toRemove.Add(reference);
+            toAdd.Add(newRef);
+        }
+
+        ReferencesToAdd = toAdd.ToArray();
+        ReferencesToRemove = toRemove.ToArray();
+        return true;
+    }
+
+    private PublicReferenceManifest HandlePublicizers() {
         var publicizerFiles = Publicizers.Select(x => x.ToString()).ToArray();
         Log.LogMessage("Publicizer running with inputs: {0}", string.Join(", ", publicizerFiles));
 
@@ -57,46 +100,7 @@ public sealed class ModifyReferencesTask : AbstractTask {
         }
 
         Log.LogMessage("Parsed into {0} manifests", manifests.Count);
-        var manifest = CombineManifests(manifests);
-
-        var toAdd = new List<ITaskItem>();
-        var toRemove = new List<ITaskItem>();
-
-        foreach (var reference in ReferencePaths) {
-            var asmName = reference.GetMetadata("Filename");
-            var assemblyPath = reference.GetMetadata("FullPath");
-
-            var asmBytes = File.ReadAllBytes(assemblyPath);
-            var hash = Hasher.ComputeHash(asmBytes, new ReferenceModificationHasher(manifest));
-            var outputDir = Path.Combine(OutputDirectory, $"{asmName}-{hash}");
-            var outputPath = Path.Combine(outputDir, $"{asmName}.dll");
-            Directory.CreateDirectory(outputDir);
-
-            if (File.Exists(outputPath)) {
-                Log.LogMessage("Skipping reference '{0}' because it already exists in the output directory", asmName);
-                continue;
-            }
-
-            var asmDef = AssemblyDefinition.FromBytes(asmBytes);
-            if (!RewriteAssembly(asmDef, new PublicizerAssemblyRewriter(manifest)))
-                continue;
-
-            Log.LogMessage("Writing modified reference '{0}' to '{1}'", asmName, outputPath);
-            asmDef.Write(outputPath);
-
-            var documentationPath = Path.Combine(Path.GetDirectoryName(assemblyPath)!, asmName + ".xml");
-            if (File.Exists(documentationPath))
-                File.Copy(documentationPath, Path.Combine(outputDir, asmName + ".xml"), true);
-
-            var newRef = new TaskItem(outputPath);
-            reference.CopyMetadataTo(newRef);
-            toRemove.Add(reference);
-            toAdd.Add(newRef);
-        }
-
-        ReferencesToAdd = toAdd.ToArray();
-        ReferencesToRemove = toRemove.ToArray();
-        return true;
+        return CombineManifests(manifests);
     }
 
     private static PublicReferenceManifest CombineManifests(List<PublicReferenceManifest> manifests) {
