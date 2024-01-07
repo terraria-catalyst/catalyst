@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using AsmResolver.DotNet;
 using AsmResolver.PE.DotNet.Metadata.Tables.Rows;
 using TeamCatalyst.Catalyst.Abstractions.AssemblyRewriting;
+using TeamCatalyst.Catalyst.Abstractions.Hashing;
 using TeamCatalyst.Catalyst.Abstractions.ReferenceModification;
 
 namespace TeamCatalyst.Catalyst.Build.AssemblyRewriting;
@@ -10,19 +12,22 @@ namespace TeamCatalyst.Catalyst.Build.AssemblyRewriting;
 internal sealed class PublicizerAssemblyRewriter : IAssemblyRewriter {
     public PublicReferenceManifest Manifest { get; }
 
-    public PublicizerAssemblyRewriter(PublicReferenceManifest manifest) {
+    public AssemblyRewritingContext Context { get; }
+
+    public PublicizerAssemblyRewriter(AssemblyRewritingContext context, PublicReferenceManifest manifest) {
+        Context = context;
         Manifest = manifest;
     }
 
-    bool IAssemblyRewriter.ProcessAssembly(AssemblyDefinition asm) {
+    bool IAssemblyRewriter.ProcessAssembly() {
         foreach (var manifestAssembly in Manifest.Assemblies) {
-            if (manifestAssembly.Key != asm.Name)
+            if (manifestAssembly.Key != Context.Assembly.Name)
                 continue;
 
             var publicizeAll = manifestAssembly.Value.PublicizeAllMembersAndTypes;
             var includeVirtuals = manifestAssembly.Value.AllowVirtualMembers;
 
-            var types = asm.Modules.SelectMany(x => x.GetAllTypes()).ToList();
+            var types = Context.Assembly.Modules.SelectMany(x => x.GetAllTypes()).ToList();
 
             if (publicizeAll)
                 PublicizeAllTypesAndMembers(types, includeVirtuals);
@@ -92,6 +97,39 @@ internal sealed class PublicizerAssemblyRewriter : IAssemblyRewriter {
         }
 
         return false;
+    }
+
+    IEnumerable<(string name, byte[] data)> IAssemblyRewriter.GetAuxiliaryFiles() {
+        yield break;
+    }
+
+    void IAssemblyRewriter.Hash(ICryptoTransform hash) {
+        hash.HashString( Manifest.Name);
+
+        foreach (var asm in Manifest.Assemblies) {
+            hash.HashString( asm.Key);
+            hash.HashString( asm.Value.AssemblyName);
+            hash.HashBoolean( asm.Value.PublicizeAllMembersAndTypes);
+            hash.HashBoolean( asm.Value.AllowVirtualMembers);
+
+            foreach (var type in asm.Value.Types) {
+                hash.HashString( type.TypeName);
+                hash.HashBoolean( type.PublicizeSelf);
+                hash.HashBoolean( type.PublicizeAllMembers);
+
+                foreach (var field in type.Fields)
+                    hash.HashString( field);
+
+                foreach (var property in type.Properties)
+                    hash.HashString( property);
+
+                foreach (var @event in type.Events)
+                    hash.HashString( @event);
+
+                foreach (var method in type.Methods)
+                    hash.HashString( method);
+            }
+        }
     }
 
     private static void PublicizeAllTypesAndMembers(List<TypeDefinition> types, bool includeVirtuals) {

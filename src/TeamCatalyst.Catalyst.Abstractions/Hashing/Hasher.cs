@@ -1,27 +1,28 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Text;
+using TeamCatalyst.Catalyst.Abstractions.AssemblyRewriting;
 
 namespace TeamCatalyst.Catalyst.Abstractions.Hashing;
 
 public static class Hasher {
-    public static void HashBuffer(ICryptoTransform hash, byte[] buffer) {
+    public static void HashBuffer(this ICryptoTransform hash, byte[] buffer) {
         hash.TransformBlock(buffer, 0, buffer.Length, buffer, 0);
     }
 
-    public static void HashString(ICryptoTransform hash, string value) {
+    public static void HashString(this ICryptoTransform hash, string value) {
         HashBuffer(hash, Encoding.UTF8.GetBytes(value));
     }
 
-    public static void HashInt32(ICryptoTransform hash, int value) {
+    public static void HashInt32(this ICryptoTransform hash, int value) {
         HashBuffer(hash, BitConverter.GetBytes(value));
     }
 
-    public static void HashBoolean(ICryptoTransform hash, bool value) {
+    public static void HashBoolean(this ICryptoTransform hash, bool value) {
         HashBuffer(hash, BitConverter.GetBytes(value));
     }
 
-    public static string ComputeHash(byte[] bytes, params IHasher[] hashers) {
+    public static string ComputeHash(byte[] bytes, params IAssemblyRewriter[] hashers) {
         using var md5 = MD5.Create();
 
         // TODO: Hash versions here.

@@ -5,7 +5,6 @@ using System.Linq;
 using AsmResolver.DotNet;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using TeamCatalyst.Catalyst.Abstractions.Annotations;
 using TeamCatalyst.Catalyst.Abstractions.AssemblyRewriting;
 using TeamCatalyst.Catalyst.Abstractions.Engines;
 using TeamCatalyst.Catalyst.Abstractions.Hashing;
@@ -39,31 +38,38 @@ public sealed class ModifyReferencesTask : AbstractTask {
         var toRemove = new List<ITaskItem>();
 
         foreach (var reference in ReferencePaths) {
-            var asmName = reference.GetMetadata("Filename");
+            var assemblyName = reference.GetMetadata("Filename");
             var assemblyPath = reference.GetMetadata("FullPath");
+            var assemblyBytes = File.ReadAllBytes(assemblyPath);
+            var assemblyDefinition = AssemblyDefinition.FromBytes(assemblyBytes);
 
-            var asmBytes = File.ReadAllBytes(assemblyPath);
-            var hash = Hasher.ComputeHash(asmBytes, new ReferenceModificationHasher(publicManifest));
-            var outputDir = Path.Combine(OutputDirectory, $"{asmName}-{hash}");
-            var outputPath = Path.Combine(outputDir, $"{asmName}.dll");
+            var context = new AssemblyRewritingContext(assemblyName, assemblyPath, assemblyDefinition, assemblyDefinition.ManifestModule!);
+            var rewriters = new IAssemblyRewriter[] {
+                new SummaryProviderAssemblyRewriter(context),
+                new PublicizerAssemblyRewriter(context, publicManifest),
+            };
+
+            var hash = Hasher.ComputeHash(assemblyBytes, rewriters);
+            var outputDir = Path.Combine(OutputDirectory, $"{assemblyName}-{hash}");
+            var outputPath = Path.Combine(outputDir, $"{assemblyName}.dll");
             Directory.CreateDirectory(outputDir);
 
             if (File.Exists(outputPath)) {
-                Log.LogMessage("Skipping reference '{0}' because it already exists in the output directory", asmName);
-                continue;
+                Log.LogMessage("Skipping reference '{0}' because it already exists in the output directory", assemblyName);
+                goto ModifyReferences;
             }
 
-            var asmDef = AssemblyDefinition.FromBytes(asmBytes);
-            if (!RewriteAssembly(asmDef, new PublicizerAssemblyRewriter(publicManifest), new AnnotationsAssemblyRewriter(new TmlAnnotationsProvider())))
+            if (!RewriteAssembly(rewriters))
                 continue;
 
-            Log.LogMessage("Writing modified reference '{0}' to '{1}'", asmName, outputPath);
-            asmDef.Write(outputPath);
+            Log.LogMessage("Writing modified reference '{0}' to '{1}'", assemblyName, outputPath);
+            assemblyDefinition.Write(outputPath);
 
-            var documentationPath = Path.Combine(Path.GetDirectoryName(assemblyPath)!, asmName + ".xml");
-            if (File.Exists(documentationPath))
-                File.Copy(documentationPath, Path.Combine(outputDir, asmName + ".xml"), true);
+            Log.LogMessage("Writing auxiliary files");
+            foreach (var (name, data) in rewriters.SelectMany(x => x.GetAuxiliaryFiles()))
+                File.WriteAllBytes(Path.Combine(outputDir, name), data);
 
+            ModifyReferences:
             var newRef = new TaskItem(outputPath);
             reference.CopyMetadataTo(newRef);
             toRemove.Add(reference);
@@ -144,12 +150,7 @@ public sealed class ModifyReferencesTask : AbstractTask {
         return combined;
     }
 
-    private static bool RewriteAssembly(AssemblyDefinition asmDef, params IAssemblyRewriter[] rewriters) {
-        var modified = false;
-
-        foreach (var rewriter in rewriters)
-            modified |= rewriter.ProcessAssembly(asmDef);
-
-        return modified;
+    private static bool RewriteAssembly(params IAssemblyRewriter[] rewriters) {
+        return rewriters.Aggregate(false, (current, rewriter) => current | rewriter.ProcessAssembly());
     }
 }

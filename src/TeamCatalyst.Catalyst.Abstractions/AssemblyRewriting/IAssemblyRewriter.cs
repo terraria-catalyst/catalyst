@@ -1,7 +1,14 @@
-﻿using AsmResolver.DotNet;
+﻿using System.Collections.Generic;
+using System.Security.Cryptography;
 
 namespace TeamCatalyst.Catalyst.Abstractions.AssemblyRewriting;
 
 public interface IAssemblyRewriter {
-    bool ProcessAssembly(AssemblyDefinition asm);
+    AssemblyRewritingContext Context { get; }
+
+    bool ProcessAssembly();
+
+    IEnumerable<(string name, byte[] data)> GetAuxiliaryFiles();
+
+    void Hash(ICryptoTransform hash);
 }
