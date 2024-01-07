@@ -5,6 +5,7 @@ using System.Linq;
 using AsmResolver.DotNet;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using TeamCatalyst.Catalyst.Abstractions.Annotations;
 using TeamCatalyst.Catalyst.Abstractions.AssemblyRewriting;
 using TeamCatalyst.Catalyst.Abstractions.Engines;
 using TeamCatalyst.Catalyst.Abstractions.Hashing;
@@ -53,7 +54,7 @@ public sealed class ModifyReferencesTask : AbstractTask {
             }
 
             var asmDef = AssemblyDefinition.FromBytes(asmBytes);
-            if (!RewriteAssembly(asmDef, new PublicizerAssemblyRewriter(publicManifest)))
+            if (!RewriteAssembly(asmDef, new PublicizerAssemblyRewriter(publicManifest), new AnnotationsAssemblyRewriter(new TmlAnnotationsProvider())))
                 continue;
 
             Log.LogMessage("Writing modified reference '{0}' to '{1}'", asmName, outputPath);

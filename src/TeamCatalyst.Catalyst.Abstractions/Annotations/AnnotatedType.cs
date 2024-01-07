@@ -24,6 +24,16 @@ public sealed class AnnotatedAssembly {
         AssemblyName = assemblyName;
     }
 
+    public AnnotatedAssembly WithAssemblyAnnotation(IAssemblyAnnotation annotation) {
+        AssemblyAnnotations.Add(annotation);
+        return this;
+    }
+
+    public AnnotatedAssembly WithModuleAnnotation(IModuleAnnotation annotation) {
+        ModuleAnnotations.Add(annotation);
+        return this;
+    }
+
     public AnnotatedAssembly AnnotateClass(string fullName, Action<AnnotatedClass> action) {
         if (!Classes.TryGetValue(fullName, out var annotatedClass)) {
             annotatedClass = new AnnotatedClass(fullName);
