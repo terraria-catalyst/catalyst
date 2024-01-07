@@ -23,6 +23,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\TeamCatalyst.Catalyst.Abstractions\TeamCatalyst.Catalyst.Abstractions.csproj"/>
+        <ProjectReference Include="..\TeamCatalyst.Catalyst.Annotations\TeamCatalyst.Catalyst.Annotations.csproj"/>
         <ProjectReference Include="..\TeamCatalyst.Catalyst.Build.JavaScript\TeamCatalyst.Catalyst.Build.JavaScript.csproj"/>
         <ProjectReference Include="..\TeamCatalyst.Catalyst.Build.Json\TeamCatalyst.Catalyst.Build.Json.csproj"/>
         <ProjectReference Include="..\TeamCatalyst.Catalyst.Build.Lua\TeamCatalyst.Catalyst.Build.Lua.csproj"/>

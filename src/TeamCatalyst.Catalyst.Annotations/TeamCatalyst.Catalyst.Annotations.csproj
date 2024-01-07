@@ -6,4 +6,9 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+        <None Remove="**\*.xml"/>
+        <EmbeddedResource Include="**\*.xml"/>
+    </ItemGroup>
+
 </Project>

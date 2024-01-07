@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<assembly name="tModLoader">
+    <member name="T:Terraria.ModLoader.ILoadable">
+        <attribute ctor="M:JetBrains.Annotations.UsedImplicitlyAttribute.#ctor(JetBrains.Annotations.ImplicitUseKindFlags,JetBrains.Annotations.ImplicitUseTargetFlags)">
+            <argument>4</argument>
+            <argument>4</argument>
+        </attribute>
+    </member>
+    <member name="T:Terraria.ModLoader.Mod">
+        <attribute ctor="M:JetBrains.Annotations.UsedImplicitlyAttribute.#ctor(JetBrains.Annotations.ImplicitUseKindFlags,JetBrains.Annotations.ImplicitUseTargetFlags)">
+            <argument>4</argument>
+            <argument>4</argument>
+        </attribute>
+    </member>
+</assembly>

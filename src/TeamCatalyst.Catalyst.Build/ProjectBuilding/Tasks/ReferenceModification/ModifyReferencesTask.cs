@@ -47,6 +47,7 @@ public sealed class ModifyReferencesTask : AbstractTask {
             var rewriters = new IAssemblyRewriter[] {
                 new SummaryProviderAssemblyRewriter(context),
                 new PublicizerAssemblyRewriter(context, publicManifest),
+                new AnnotationProviderAssemblyRewriter(context),
             };
 
             var hash = Hasher.ComputeHash(assemblyBytes, rewriters);
