@@ -8,6 +8,6 @@
     </ItemGroup>
 
     <!-- Disable the tModLoader build task if requested. -->
-    <Target Condition=" '$(OverrideTMLBuildTask)' == 'true' " Name="BuildMod" AfterTargets="Build"/>
+    <!-- <Target Condition=" '$(OverrideTMLBuildTask)' == 'true' " Name="BuildMod" AfterTargets="Build"/> -->
 
 </Project>
