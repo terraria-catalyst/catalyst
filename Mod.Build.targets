@@ -12,7 +12,7 @@
 
         <CatalystDir Condition=" '$(CatalystDir)' == '' ">$(MSBuildProjectDirectory)/.catalyst/</CatalystDir>
 
-        <PathToModLoaderTargetsDir Condition=" $(PathToModLoaderTargetsDir) == '' ">$(MSBuildProjectDirectory)/../../../</PathToModLoaderTargetsDir>
+        <PathToModLoaderTargetsDir Condition=" $(PathToModLoaderTargetsDir) == '' ">$(MSBuildThisFileDirectory)/../../</PathToModLoaderTargetsDir>
     </PropertyGroup>
 
     <!-- Import general Catalst build targets. -->

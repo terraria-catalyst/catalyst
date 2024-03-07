@@ -28,6 +28,9 @@ public sealed class ModifyReferencesTask : AbstractTask {
     public ITaskItem[]? ReferencesToRemove { get; set; }
 
     protected override bool Run() {
+        if (Publicizers is null || Publicizers.Length == 0)
+            return true;
+
         Directory.CreateDirectory(OutputDirectory);
         ReferencesToAdd ??= Array.Empty<ITaskItem>();
         ReferencesToRemove ??= Array.Empty<ITaskItem>();
