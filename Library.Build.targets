@@ -8,4 +8,7 @@
     <!-- Import Mod.Build.Targets as normal. -->
     <Import Project="Mod.Build.targets"/>
 
+    <!-- Redefine the build task so it doesn't run. -->
+    <Target Name="BuildMod" />
+
 </Project>
